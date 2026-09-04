@@ -809,3 +809,14 @@ body.lightbox-open {
     font-size: 26px;
   }
 }
+
+
+/* === TBRE PROJECT YEAR === */
+.card-year {
+  margin: -5px 0 14px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
