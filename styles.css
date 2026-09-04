@@ -508,3 +508,129 @@ button { font: inherit; }
     white-space: normal;
   }
 }
+
+
+/* === PROJECT CAROUSELS === */
+
+.project-carousel {
+  position: relative;
+  overflow: hidden;
+  background: #1c2023;
+}
+
+.carousel-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.carousel-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.015);
+  transition: opacity .28s ease, transform .45s ease;
+  pointer-events: none;
+}
+
+.carousel-slide.active {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.carousel-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.carousel-arrow {
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255,255,255,.38);
+  border-radius: 50%;
+  background: rgba(14,16,18,.56);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.carousel-prev { left: 18px; }
+.carousel-next { right: 18px; }
+
+.carousel-dots {
+  position: absolute;
+  z-index: 6;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 9px;
+  border-radius: 999px;
+  background: rgba(14,16,18,.48);
+  backdrop-filter: blur(8px);
+}
+
+.carousel-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.45);
+  cursor: pointer;
+}
+
+.carousel-dot.active { background: #fff; }
+
+.project-carousel.single-image .carousel-arrow,
+.project-carousel.single-image .carousel-dots {
+  display: none;
+}
+
+.carousel-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  text-align: center;
+  color: rgba(255,255,255,.72);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.carousel-empty code { color: #fff; }
+
+.card-carousel { height: 300px; }
+
+.project-featured .project-carousel {
+  min-height: 560px;
+}
+
+@media (max-width: 980px) {
+  .project-featured .project-carousel { min-height: 420px; }
+}
+
+@media (max-width: 760px) {
+  .carousel-arrow {
+    width: 38px;
+    height: 38px;
+  }
+  .carousel-prev { left: 12px; }
+  .carousel-next { right: 12px; }
+  .carousel-dots { bottom: 12px; }
+  .card-carousel { height: 240px; }
+}
