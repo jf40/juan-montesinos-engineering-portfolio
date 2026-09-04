@@ -21,34 +21,32 @@ After editing locally, upload the changed files to the repository root and commi
 
 ## Project photo carousels
 
-Add images to `assets/` using continuous numbering. Each image can independently be **JPG, JPEG or PNG**, so you can mix formats in the same carousel. No HTML or JavaScript edits are needed.
+Upload the images directly to `assets/`. The live GitHub Pages site automatically reads that folder and creates each carousel.
 
-### Top triple clamp
-- `triple-clamp-01.jpg` or `triple-clamp-01.png`
-- `triple-clamp-02.jpg` or `triple-clamp-02.png`
-- `triple-clamp-03.jpg` or `triple-clamp-03.png`
-- ...
+Supported formats:
+- `.png`
+- `.jpg`
+- `.jpeg`
 
-### MotoStudent chassis
-- `motostudent-chassis-01.jpg` or `motostudent-chassis-01.png`
-- `motostudent-chassis-02.jpg` or `motostudent-chassis-02.png`
-- ...
+### Naming
 
-### Formula Student harness brackets
-- `formula-student-harness-01.jpg` or `formula-student-harness-01.png`
-- `formula-student-harness-02.jpg` or `formula-student-harness-02.png`
-- ...
+Top triple clamp:
+- `triple-clamp-01.png`
+- `triple-clamp-02.jpg`
+- `triple-clamp-03.png`
 
-### Formula Student brake pedal
-- `formula-student-brake-pedal-01.jpg` or `formula-student-brake-pedal-01.png`
-- `formula-student-brake-pedal-02.jpg` or `formula-student-brake-pedal-02.png`
-- ...
+MotoStudent chassis:
+- `motostudent-chassis-01.png`
+- `motostudent-chassis-02.jpg`
 
-Rules:
-- Supported extensions: `.jpg`, `.jpeg`, `.png`.
-- Use lowercase file extensions.
-- Start at `01` and keep the numbering continuous.
-- You can mix formats, e.g. `triple-clamp-01.png`, `triple-clamp-02.jpg`, `triple-clamp-03.png`.
-- Do not upload two files with the same prefix and number in different formats; if you do, the priority is JPG → JPEG → PNG.
-- One image: no carousel controls.
-- Two or more images: arrows, dots and swipe navigation.
+Formula Student harness:
+- `formula-student-harness-01.png`
+- `formula-student-harness-02.jpg`
+
+Formula Student brake pedal:
+- `formula-student-brake-pedal-01.png`
+- `formula-student-brake-pedal-02.jpg`
+
+The number determines the order in the carousel. You may mix PNG/JPG/JPEG, and gaps in numbering are allowed.
+
+The website uses GitHub's public repository API to discover the images automatically, so adding new photos does not require editing `index.html` or `script.js`.

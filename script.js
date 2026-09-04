@@ -20,16 +20,73 @@ const year = document.getElementById('year');
 if (year) year.textContent = new Date().getFullYear();
 
 /*
-  PROJECT PHOTO NAMING:
-  assets/<project-prefix>-01.jpg OR .png
-  assets/<project-prefix>-02.jpg OR .png
-  assets/<project-prefix>-03.jpg OR .png
+  PROJECT PHOTO NAMING
+  --------------------
+  Put images in /assets using:
+
+  <project-prefix>-01.png
+  <project-prefix>-02.jpg
+  <project-prefix>-03.jpeg
   ...
 
-  Keep numbering continuous. The carousel stops at the first missing number.
-*/
-const CAROUSEL_MAX_IMAGES = 250;
+  PNG, JPG and JPEG can be mixed.
 
+  On GitHub Pages, the website reads the public /assets folder through
+  GitHub's public repository API, so it can discover every matching file.
+*/
+
+const SUPPORTED_IMAGE_EXTENSIONS = /\.(png|jpe?g)$/i;
+
+function getGitHubRepoInfo() {
+  if (!window.location.hostname.endsWith('.github.io')) return null;
+
+  const owner = window.location.hostname.split('.')[0];
+  const parts = window.location.pathname.split('/').filter(Boolean);
+
+  // Project Pages URL:
+  // https://OWNER.github.io/REPOSITORY/
+  if (!parts.length) return null;
+
+  return {
+    owner,
+    repo: parts[0]
+  };
+}
+
+async function getAssetFileNamesFromGitHub() {
+  const repoInfo = getGitHubRepoInfo();
+  if (!repoInfo) return null;
+
+  const apiUrl =
+    `https://api.github.com/repos/${encodeURIComponent(repoInfo.owner)}/` +
+    `${encodeURIComponent(repoInfo.repo)}/contents/assets`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      headers: { Accept: 'application/vnd.github+json' },
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      console.warn('Could not read GitHub assets folder:', response.status);
+      return null;
+    }
+
+    const items = await response.json();
+
+    if (!Array.isArray(items)) return null;
+
+    return items
+      .filter(item => item && item.type === 'file' && SUPPORTED_IMAGE_EXTENSIONS.test(item.name))
+      .map(item => item.name);
+  } catch (error) {
+    console.warn('Could not read GitHub assets folder:', error);
+    return null;
+  }
+}
+
+// Local/offline fallback. This probes numbered filenames.
+// GitHub Pages normally uses the API method above instead.
 function imageExists(src) {
   return new Promise(resolve => {
     const img = new Image();
@@ -39,30 +96,52 @@ function imageExists(src) {
   });
 }
 
-async function findCarouselImages(prefix) {
+async function discoverLocally(prefix) {
   const sources = [];
-  const extensions = ['jpg', 'jpeg', 'png'];
+  const extensions = ['png', 'jpg', 'jpeg'];
 
-  for (let i = 1; i <= CAROUSEL_MAX_IMAGES; i++) {
+  for (let i = 1; i <= 250; i++) {
     const number = String(i).padStart(2, '0');
-    let foundSource = null;
+    let found = null;
 
-    // For every image number, accept JPG, JPEG or PNG.
-    // This means formats can be mixed inside the same carousel.
-    for (const extension of extensions) {
-      const src = `assets/${prefix}-${number}.${extension}`;
+    for (const ext of extensions) {
+      const src = `assets/${prefix}-${number}.${ext}`;
       if (await imageExists(src)) {
-        foundSource = src;
+        found = src;
         break;
       }
     }
 
-    // Stop only when this number does not exist in any supported format.
-    if (!foundSource) break;
-    sources.push(foundSource);
+    if (!found) break;
+    sources.push(found);
   }
 
   return sources;
+}
+
+function getSourcesForPrefix(prefix, assetFileNames) {
+  if (!assetFileNames) return null;
+
+  // Accept 1, 01, 001 etc. Sorting is numeric.
+  const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(
+    `^${escapedPrefix}-(\\d+)\\.(png|jpe?g)$`,
+    'i'
+  );
+
+  return assetFileNames
+    .map(name => {
+      const match = name.match(pattern);
+      if (!match) return null;
+
+      return {
+        name,
+        number: parseInt(match[1], 10)
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.number - b.number || a.name.localeCompare(b.name))
+    .map(item => `assets/${encodeURIComponent(item.name)}`);
 }
 
 function initialiseCarousel(carousel, sources) {
@@ -72,17 +151,24 @@ function initialiseCarousel(carousel, sources) {
   const dots = carousel.querySelector('.carousel-dots');
   const altBase = carousel.dataset.carouselAlt || 'Project image';
 
-  if (!sources.length) {
+  stage.innerHTML = '';
+  dots.innerHTML = '';
+
+  if (!sources || !sources.length) {
     stage.innerHTML = `
       <div class="carousel-empty">
         <div>
-          No photos uploaded yet.<br>
-          Start with <code>${carousel.dataset.carouselPrefix}-01.jpg</code>
+          No photos found.<br>
+          Use <code>${carousel.dataset.carouselPrefix}-01.png</code>
+          or <code>${carousel.dataset.carouselPrefix}-01.jpg</code>
         </div>
-      </div>`;
+      </div>
+    `;
     carousel.classList.add('single-image');
     return;
   }
+
+  carousel.classList.toggle('single-image', sources.length === 1);
 
   let current = 0;
 
@@ -111,16 +197,21 @@ function initialiseCarousel(carousel, sources) {
 
   function show(index) {
     current = (index + slides.length) % slides.length;
-    slides.forEach((slide, i) => slide.classList.toggle('active', i === current));
-    dotButtons.forEach((dot, i) => dot.classList.toggle('active', i === current));
+
+    slides.forEach((slide, i) => {
+      slide.classList.toggle('active', i === current);
+    });
+
+    dotButtons.forEach((dot, i) => {
+      dot.classList.toggle('active', i === current);
+    });
   }
 
-  prev.addEventListener('click', () => show(current - 1));
-  next.addEventListener('click', () => show(current + 1));
-
-  if (sources.length === 1) carousel.classList.add('single-image');
+  prev.onclick = () => show(current - 1);
+  next.onclick = () => show(current + 1);
 
   let startX = null;
+
   carousel.addEventListener('touchstart', event => {
     startX = event.touches[0].clientX;
   }, { passive: true });
@@ -137,7 +228,24 @@ function initialiseCarousel(carousel, sources) {
   }, { passive: true });
 }
 
-document.querySelectorAll('[data-carousel-prefix]').forEach(async carousel => {
-  const sources = await findCarouselImages(carousel.dataset.carouselPrefix);
-  initialiseCarousel(carousel, sources);
-});
+async function initialiseAllCarousels() {
+  const carousels = [...document.querySelectorAll('[data-carousel-prefix]')];
+
+  // Preferred method for the live GitHub Pages site.
+  const assetFileNames = await getAssetFileNamesFromGitHub();
+
+  for (const carousel of carousels) {
+    const prefix = carousel.dataset.carouselPrefix;
+
+    let sources = getSourcesForPrefix(prefix, assetFileNames);
+
+    // Fallback for opening index.html locally or other static hosts.
+    if (sources === null) {
+      sources = await discoverLocally(prefix);
+    }
+
+    initialiseCarousel(carousel, sources);
+  }
+}
+
+initialiseAllCarousels();
