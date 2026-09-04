@@ -21,9 +21,9 @@ if (year) year.textContent = new Date().getFullYear();
 
 /*
   PROJECT PHOTO NAMING:
-  assets/<project-prefix>-01.jpg
-  assets/<project-prefix>-02.jpg
-  assets/<project-prefix>-03.jpg
+  assets/<project-prefix>-01.jpg OR .png
+  assets/<project-prefix>-02.jpg OR .png
+  assets/<project-prefix>-03.jpg OR .png
   ...
 
   Keep numbering continuous. The carousel stops at the first missing number.
@@ -41,13 +41,25 @@ function imageExists(src) {
 
 async function findCarouselImages(prefix) {
   const sources = [];
+  const extensions = ['jpg', 'jpeg', 'png'];
 
   for (let i = 1; i <= CAROUSEL_MAX_IMAGES; i++) {
     const number = String(i).padStart(2, '0');
-    const src = `assets/${prefix}-${number}.jpg`;
+    let foundSource = null;
 
-    if (!(await imageExists(src))) break;
-    sources.push(src);
+    // For every image number, accept JPG, JPEG or PNG.
+    // This means formats can be mixed inside the same carousel.
+    for (const extension of extensions) {
+      const src = `assets/${prefix}-${number}.${extension}`;
+      if (await imageExists(src)) {
+        foundSource = src;
+        break;
+      }
+    }
+
+    // Stop only when this number does not exist in any supported format.
+    if (!foundSource) break;
+    sources.push(foundSource);
   }
 
   return sources;
