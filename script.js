@@ -19,22 +19,6 @@ if (navToggle && nav) {
 const year = document.getElementById('year');
 if (year) year.textContent = new Date().getFullYear();
 
-/*
-  PROJECT PHOTO NAMING
-  --------------------
-  Put images in /assets using:
-
-  <project-prefix>-01.png
-  <project-prefix>-02.jpg
-  <project-prefix>-03.jpeg
-  ...
-
-  PNG, JPG and JPEG can be mixed.
-
-  On GitHub Pages, the website reads the public /assets folder through
-  GitHub's public repository API, so it can discover every matching file.
-*/
-
 const SUPPORTED_IMAGE_EXTENSIONS = /\.(png|jpe?g)$/i;
 
 function getGitHubRepoInfo() {
@@ -42,15 +26,9 @@ function getGitHubRepoInfo() {
 
   const owner = window.location.hostname.split('.')[0];
   const parts = window.location.pathname.split('/').filter(Boolean);
-
-  // Project Pages URL:
-  // https://OWNER.github.io/REPOSITORY/
   if (!parts.length) return null;
 
-  return {
-    owner,
-    repo: parts[0]
-  };
+  return { owner, repo: parts[0] };
 }
 
 async function getAssetFileNamesFromGitHub() {
@@ -67,13 +45,9 @@ async function getAssetFileNamesFromGitHub() {
       cache: 'no-store'
     });
 
-    if (!response.ok) {
-      console.warn('Could not read GitHub assets folder:', response.status);
-      return null;
-    }
+    if (!response.ok) return null;
 
     const items = await response.json();
-
     if (!Array.isArray(items)) return null;
 
     return items
@@ -85,8 +59,6 @@ async function getAssetFileNamesFromGitHub() {
   }
 }
 
-// Local/offline fallback. This probes numbered filenames.
-// GitHub Pages normally uses the API method above instead.
 function imageExists(src) {
   return new Promise(resolve => {
     const img = new Image();
@@ -122,7 +94,6 @@ async function discoverLocally(prefix) {
 function getSourcesForPrefix(prefix, assetFileNames) {
   if (!assetFileNames) return null;
 
-  // Accept 1, 01, 001 etc. Sorting is numeric.
   const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const pattern = new RegExp(
     `^${escapedPrefix}-(\\d+)\\.(png|jpe?g)$`,
@@ -143,6 +114,108 @@ function getSourcesForPrefix(prefix, assetFileNames) {
     .sort((a, b) => a.number - b.number || a.name.localeCompare(b.name))
     .map(item => `assets/${encodeURIComponent(item.name)}`);
 }
+
+/* ---------------------------
+   Expanded carousel lightbox
+---------------------------- */
+
+const lightbox = document.getElementById('carousel-lightbox');
+const lightboxImage = document.getElementById('lightbox-image');
+const lightboxCounter = document.getElementById('lightbox-counter');
+const lightboxDots = document.getElementById('lightbox-dots');
+const lightboxPrev = lightbox?.querySelector('.lightbox-prev');
+const lightboxNext = lightbox?.querySelector('.lightbox-next');
+const lightboxClose = lightbox?.querySelector('.lightbox-close');
+
+let lightboxSources = [];
+let lightboxIndex = 0;
+let lightboxAltBase = 'Project image';
+let lightboxReturnFocus = null;
+
+function renderLightbox() {
+  if (!lightbox || !lightboxSources.length) return;
+
+  lightboxIndex =
+    (lightboxIndex + lightboxSources.length) % lightboxSources.length;
+
+  lightboxImage.src = lightboxSources[lightboxIndex];
+  lightboxImage.alt = `${lightboxAltBase} — image ${lightboxIndex + 1}`;
+  lightboxCounter.textContent =
+    `${lightboxIndex + 1} / ${lightboxSources.length}`;
+
+  lightboxDots.innerHTML = '';
+
+  lightboxSources.forEach((_, index) => {
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.className = `lightbox-dot${index === lightboxIndex ? ' active' : ''}`;
+    dot.setAttribute('aria-label', `Show expanded image ${index + 1}`);
+    dot.addEventListener('click', () => {
+      lightboxIndex = index;
+      renderLightbox();
+    });
+    lightboxDots.appendChild(dot);
+  });
+
+  lightbox.classList.toggle('single-image', lightboxSources.length === 1);
+}
+
+function openLightbox(sources, index, altBase, returnFocus) {
+  if (!lightbox || !sources.length) return;
+
+  lightboxSources = [...sources];
+  lightboxIndex = index;
+  lightboxAltBase = altBase || 'Project image';
+  lightboxReturnFocus = returnFocus || null;
+
+  renderLightbox();
+
+  lightbox.classList.add('open');
+  lightbox.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('lightbox-open');
+
+  lightboxClose?.focus();
+}
+
+function closeLightbox() {
+  if (!lightbox) return;
+
+  lightbox.classList.remove('open');
+  lightbox.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('lightbox-open');
+
+  lightboxImage.src = '';
+
+  if (lightboxReturnFocus) {
+    lightboxReturnFocus.focus({ preventScroll: true });
+  }
+}
+
+function changeLightboxImage(delta) {
+  if (!lightboxSources.length) return;
+  lightboxIndex += delta;
+  renderLightbox();
+}
+
+lightboxPrev?.addEventListener('click', () => changeLightboxImage(-1));
+lightboxNext?.addEventListener('click', () => changeLightboxImage(1));
+lightboxClose?.addEventListener('click', closeLightbox);
+
+lightbox?.querySelectorAll('[data-lightbox-close]').forEach(element => {
+  element.addEventListener('click', closeLightbox);
+});
+
+document.addEventListener('keydown', event => {
+  if (!lightbox?.classList.contains('open')) return;
+
+  if (event.key === 'Escape') closeLightbox();
+  if (event.key === 'ArrowLeft') changeLightboxImage(-1);
+  if (event.key === 'ArrowRight') changeLightboxImage(1);
+});
+
+/* ---------------------------
+   Inline project carousels
+---------------------------- */
 
 function initialiseCarousel(carousel, sources) {
   const stage = carousel.querySelector('.carousel-stage');
@@ -180,6 +253,19 @@ function initialiseCarousel(carousel, sources) {
     img.src = src;
     img.alt = `${altBase} — image ${index + 1}`;
     img.loading = index === 0 ? 'eager' : 'lazy';
+    img.tabIndex = 0;
+    img.setAttribute('role', 'button');
+    img.setAttribute('aria-label', `Open image ${index + 1} in large view`);
+
+    const expand = () => openLightbox(sources, index, altBase, img);
+
+    img.addEventListener('click', expand);
+    img.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        expand();
+      }
+    });
 
     slide.appendChild(img);
     stage.appendChild(slide);
@@ -230,16 +316,12 @@ function initialiseCarousel(carousel, sources) {
 
 async function initialiseAllCarousels() {
   const carousels = [...document.querySelectorAll('[data-carousel-prefix]')];
-
-  // Preferred method for the live GitHub Pages site.
   const assetFileNames = await getAssetFileNamesFromGitHub();
 
   for (const carousel of carousels) {
     const prefix = carousel.dataset.carouselPrefix;
-
     let sources = getSourcesForPrefix(prefix, assetFileNames);
 
-    // Fallback for opening index.html locally or other static hosts.
     if (sources === null) {
       sources = await discoverLocally(prefix);
     }

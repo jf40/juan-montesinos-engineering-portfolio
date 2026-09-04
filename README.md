@@ -50,3 +50,15 @@ Formula Student brake pedal:
 The number determines the order in the carousel. You may mix PNG/JPG/JPEG, and gaps in numbering are allowed.
 
 The website uses GitHub's public repository API to discover the images automatically, so adding new photos does not require editing `index.html` or `script.js`.
+
+
+## Enlarged project images
+
+Click any photo in a project carousel to open a large overlay.
+
+In the enlarged view:
+- the entire photo is shown without cropping;
+- use the left/right arrows to move through that project's images;
+- keyboard Left/Right arrows also work;
+- press Escape or click outside the image to close;
+- clicking a different carousel opens that project's own image set.

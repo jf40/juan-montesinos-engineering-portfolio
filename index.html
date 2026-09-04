@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Engineering portfolio of Juan Montesinos Benzal — mechanical design, FEA, motorsport and manufacturing.">
   <title>Juan Montesinos Engineering Portfolio</title>
-  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="styles.css?v=10">
 </head>
 <body>
   <header class="site-header">
@@ -222,6 +222,28 @@
     <p>Mechanical Engineering Portfolio · <span id="year"></span></p>
   </footer>
 
-  <script src="script.js?v=9"></script>
+
+  <div class="carousel-lightbox" id="carousel-lightbox" aria-hidden="true">
+    <div class="lightbox-backdrop" data-lightbox-close></div>
+
+    <div class="lightbox-dialog" role="dialog" aria-modal="true" aria-label="Expanded project images">
+      <button class="lightbox-close" type="button" aria-label="Close expanded image">×</button>
+
+      <button class="lightbox-arrow lightbox-prev" type="button" aria-label="Previous image">←</button>
+
+      <div class="lightbox-image-wrap">
+        <img id="lightbox-image" src="" alt="">
+      </div>
+
+      <button class="lightbox-arrow lightbox-next" type="button" aria-label="Next image">→</button>
+
+      <div class="lightbox-footer">
+        <span id="lightbox-counter"></span>
+        <div class="lightbox-dots" id="lightbox-dots" aria-label="Expanded image navigation"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js?v=10"></script>
 </body>
 </html>
