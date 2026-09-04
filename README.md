@@ -13,8 +13,14 @@ Put your photos inside the `assets` folder using these exact names:
 
 The website already points to these names, so you do not need to edit `index.html`.
 
-If your image is PNG instead of JPG, export/save a JPG copy first. Simply changing `.png` to `.jpg` in the filename does not convert the image.
+If your image is PNG instead of JPG, either export/rename it as a JPG, or change the corresponding `.jpg` extension in `index.html` to `.png`.
 
 ## GitHub Pages updates
 
 After editing locally, upload the changed files to the repository root and commit them. GitHub Pages will redeploy automatically.
+
+
+## v3 changes
+- Simplified section headings and hero labels.
+- Centered hero buttons across the page.
+- Added Automotiva engineering internship experience.
