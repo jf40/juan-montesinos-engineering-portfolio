@@ -18,9 +18,3 @@ If your image is PNG instead of JPG, either export/rename it as a JPG, or change
 ## GitHub Pages updates
 
 After editing locally, upload the changed files to the repository root and commit them. GitHub Pages will redeploy automatically.
-
-
-## v3 changes
-- Simplified section headings and hero labels.
-- Centered hero buttons across the page.
-- Added Automotiva engineering internship experience.
